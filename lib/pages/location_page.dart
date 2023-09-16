@@ -1,7 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -55,16 +52,26 @@ class _TrackerPageState extends State<TrackerPage> {
   int time = DateTime.now().millisecondsSinceEpoch;
 
   _handleUpdateApi() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    setState(() {
+      latitude = position.latitude;
+      longitude = position.longitude;
+    });
+
     final updateApiUri =
-        'https://7tonexpress.com/locationtesting/update?uuid=${widget.uuid}&${widget.duid}&time=$time&lat=$latitude&lon=$longitude';
+        'https://7tonexpress.com/locationtesting/update?uuid=${widget.uuid}&duid=${widget.duid}&time=$time&lat=$latitude&lon=$longitude';
     Map<String, dynamic> data = {};
 
-    print('post started');
+    print(updateApiUri);
 
     try {
-      HttpClient client = HttpClient()
-        ..badCertificateCallback =
-            (X509Certificate cert, String host, int port) => true;
       final response = await http.post(
         Uri.parse(updateApiUri),
         headers: {
@@ -169,7 +176,7 @@ class _TrackerPageState extends State<TrackerPage> {
               onPressed: () async {
                 handleLocation();
               },
-              child: const Text('ON DUTY '),
+              child: const Text('ON DUTY'),
             ),
             ElevatedButton(
                 onPressed: () {
@@ -178,12 +185,12 @@ class _TrackerPageState extends State<TrackerPage> {
                   });
                 },
                 child: Text('OFF DUTY')),
-            Expanded(
-              child: ListView.builder(
-                itemCount: timeData.length,
-                itemBuilder: (context, index) => Text(timeData[index]),
-              ),
-            ),
+            // Expanded(
+            //   child: ListView.builder(
+            //     itemCount: timeData.length,
+            //     itemBuilder: (context, index) => Text(timeData[index]),
+            //   ),
+            // ),
           ],
         ),
       ),

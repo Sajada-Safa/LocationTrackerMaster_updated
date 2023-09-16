@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -208,7 +209,7 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Device Unique ID: $deviceIdToShow'),
+              //Text('Device Unique ID: $deviceIdToShow'),
               SizedBox(height: 20,),
               // ElevatedButton(onPressed: () async{
               //   await Clipboard.setData(
@@ -234,7 +235,7 @@ class _LoginPageState extends State<LoginPage> {
               // SizedBox(
               //   height: 20,
               // ),
-              Text('User Unique ID: $userIdToShow'),
+              //Text('User Unique ID: $userIdToShow'),
               SizedBox(height: 20,),
               // ElevatedButton(onPressed: () async{
               //   await Clipboard.setData(
@@ -259,14 +260,14 @@ class _LoginPageState extends State<LoginPage> {
               ),
               SizedBox(height: 20,),
 
-              Text('Enter password'),
-              TextFormField(
-                obscureText: true,
-                decoration: InputDecoration(
-                  hintText: 'Enter Password',
-                ),
-                controller: passwordCtrl,
-              ),
+              // Text('Enter password'),
+              // TextFormField(
+              //   obscureText: true,
+              //   decoration: InputDecoration(
+              //     hintText: 'Enter Password',
+              //   ),
+              //   controller: passwordCtrl,
+              // ),
               SizedBox(
                 height: 50,
               ),
