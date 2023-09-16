@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
+import 'package:location_tracker/pages/location_page.dart';
 import 'package:location_tracker/pages/login.dart';
 
 void main() {
