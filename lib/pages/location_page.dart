@@ -3,6 +3,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:location_tracker/pages/login.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class TrackerPage extends StatefulWidget {
@@ -18,6 +19,9 @@ class _TrackerPageState extends State<TrackerPage> {
   bool _isLoading = false;
   double? latitude;
   double? longitude;
+  String statusText = '';
+  bool isOnDuty = false; // Added a boolean to track duty status
+  bool sendLocation = false; // Added a boolean to track location sending
 
   //get location from device
   handleLocation() async {
@@ -40,7 +44,10 @@ class _TrackerPageState extends State<TrackerPage> {
       longitude = position.longitude;
     });
 
-    await _handleUpdateApi();
+    // Check if sendLocation flag is true before sending location
+    if (sendLocation) {
+      await _handleUpdateApi();
+    }
 
     setState(() {
       _isLoading = false;
@@ -122,14 +129,13 @@ class _TrackerPageState extends State<TrackerPage> {
     super.dispose();
   }
 
-  ///End of  Updating data after a certain time code block
+  /// End of Updating data after a certain time code block
 
   /// Check internet connectivity
   ConnectivityResult _connectivityResult = ConnectivityResult.none;
   @override
   void initState() {
-    _handleUpdateApi();
-    handleLocation();
+    handleLocation(); // Remove this line to prevent immediate location update
     startLoop();
     Connectivity().onConnectivityChanged.listen((event) {
       setState(() {
@@ -143,55 +149,91 @@ class _TrackerPageState extends State<TrackerPage> {
     super.initState();
   }
 
+  // Add a function to handle logout
+  void handleLogout() {
+    // Navigate to the LoginPage and remove all previous routes from the stack
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (BuildContext context) => LoginPage(),
+      ),
+      (Route<dynamic> route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(),
         title: Text('Location Tracker'),
+        actions: [
+          // Add a logout button as an IconButton
+          IconButton(
+            onPressed: () {
+              handleLogout();
+            },
+            icon: Icon(Icons.logout), // Use the logout icon
+          ),
+        ],
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _isLoading
-                ? const CircularProgressIndicator()
-                : longitude != null && longitude != null
-                    ? Column(
-                        children: [
-                          SizedBox(
-                            height: 50,
-                          ),
-                          Text("Latitude: $latitude"),
-                          Text("Longitude: $longitude"),
-                        ],
-                      )
-                    : const Text(
-                        'Track your location here by clicking button below.',
-                      ),
-            SizedBox(
-              height: 20,
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                handleLocation();
-              },
-              child: const Text('ON DUTY'),
-            ),
-            ElevatedButton(
-                onPressed: () {
+        child: Container(
+          width: 300,
+          height: double.infinity,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _isLoading
+                  ? const CircularProgressIndicator()
+                  : (longitude != null && longitude != null && sendLocation)
+                      ? Column(
+                          children: [
+                            SizedBox(
+                              height: 50,
+                            ),
+                            // Text("Latitude: $latitude"),
+                            // Text("Longitude: $longitude"),
+                          ],
+                        )
+                      : const Text(
+                          'Track your location here by clicking button below.',
+                        ),
+              SizedBox(
+                height: 20,
+              ),
+              Text(
+                statusText,
+                style: TextStyle(fontSize: 15, color: Colors.blueGrey),
+              ),
+              SizedBox(
+                height: 18,
+              ),
+              ElevatedButton(
+                onPressed: () async {
                   setState(() {
-                    timer.cancel();
+                    isOnDuty = !isOnDuty; // Toggle duty status
+                    sendLocation = isOnDuty; // Start/stop sending location
                   });
+
+                  if (isOnDuty) {
+                    timer.cancel();
+                    statusText = 'You are On Duty';
+                  } else {
+                    statusText = 'You are Off Duty';
+                  }
+
+                  if (sendLocation) {
+                    // Start sending location when on duty
+                    handleLocation();
+                  }
                 },
-                child: Text('OFF DUTY')),
-            // Expanded(
-            //   child: ListView.builder(
-            //     itemCount: timeData.length,
-            //     itemBuilder: (context, index) => Text(timeData[index]),
-            //   ),
-            // ),
-          ],
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isOnDuty ? Colors.deepOrange : Colors.blue,
+                ),
+                child: Text(isOnDuty ? 'OFF DUTY' : 'ON DUTY'),
+              ),
+            ],
+          ),
         ),
       ),
     );
