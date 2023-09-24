@@ -1,4 +1,3 @@
-// ignore_for_file: prefer_const_constructors, avoid_print, use_build_context_synchronously
 
 import 'dart:convert';
 import 'dart:io';
@@ -22,7 +21,9 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   TextEditingController uidCtrl = TextEditingController();
   TextEditingController nameCtrl = TextEditingController();
-  TextEditingController passwordCtrl = TextEditingController();
+
+  Map<String, String> userNames = {}; // Store user names
+  
 
   String uidText = '';
   String passwordText = '';
@@ -37,6 +38,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Text userNameText = Text('');
   
+
   get responseStatusCode => null;
 
   Future<void> setDeviceUniqueIdInSharedPrefs() async {
@@ -103,7 +105,6 @@ class _LoginPageState extends State<LoginPage> {
     await prefs.setString(key, name);
   }
 
-
   Future<void> handleAPi() async {
     String apiUrl =
         'https://7tonexpress.com/locationtesting/check?uuid=$userIdToShow&name=$nameText';
@@ -132,14 +133,17 @@ class _LoginPageState extends State<LoginPage> {
         final redirectUrl = response.headers['location'];
         print(redirectUrl);
 
-        Navigator.push(
+        // After successful login, navigate to the LocationPage and clear the navigation stack.
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
             builder: (BuildContext context) => TrackerPage(
               uuid: uuid,
               duid: duid,
+              userNameT: nameText,
             ),
           ),
+          (route) => false,
         );
       } else if (response.statusCode == 404) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -155,15 +159,21 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void handleLogin(String uid, String password) async {
+  void handleLogin(String uid, String name) async {
     try {
+      // Update the nameText variable when handling login
+      setState(() {
+        nameText = nameCtrl.text;
+      });
       await handleAPi();
     } catch (e) {
       print(e);
     }
 
+    userNames[uuid] = nameCtrl.text; // Store the user name in the map
     await saveNameInSharedPreferences(nameCtrl.text);
   }
+  
 
   @override
   void initState() {
@@ -173,8 +183,8 @@ class _LoginPageState extends State<LoginPage> {
     getUUIDFromSharedPrefs();
     getNameFromSharedPrefs();
   }
+  
 
- 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
