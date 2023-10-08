@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -23,7 +22,6 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController nameCtrl = TextEditingController();
 
   Map<String, String> userNames = {}; // Store user names
-  
 
   String uidText = '';
   String passwordText = '';
@@ -37,7 +35,6 @@ class _LoginPageState extends State<LoginPage> {
   String userIdToShow = '';
 
   Text userNameText = Text('');
-  
 
   get responseStatusCode => null;
 
@@ -173,7 +170,6 @@ class _LoginPageState extends State<LoginPage> {
     userNames[uuid] = nameCtrl.text; // Store the user name in the map
     await saveNameInSharedPreferences(nameCtrl.text);
   }
-  
 
   @override
   void initState() {
@@ -183,7 +179,6 @@ class _LoginPageState extends State<LoginPage> {
     getUUIDFromSharedPrefs();
     getNameFromSharedPrefs();
   }
-  
 
   @override
   Widget build(BuildContext context) {

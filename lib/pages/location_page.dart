@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Add this import for MethodChannel
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:location_tracker/pages/login.dart';
@@ -24,77 +22,72 @@ class TrackerPage extends StatefulWidget {
   State<TrackerPage> createState() => _TrackerPageState();
 }
 
-class _TrackerPageState extends State<TrackerPage> with WidgetsBindingObserver {
+class _TrackerPageState extends State<TrackerPage> {
   bool _isLoading = false;
   double? latitude;
   double? longitude;
   String statusText = '';
   bool isOnDuty = false;
   bool sendLocation = false;
+  int currentTime = 0; // Initialize with 0
 
   static const String dutyStatusKey = 'duty_status';
   static const String lastLoginTimestampKey = 'last_login_timestamp';
 
-  Future<void> handleLocation() async {
-    try {
-      var status = await Permission.location.request();
-      if (status.isGranted) {
-        print('Location permission accepted');
-      } else {
-        print('Location permission denied');
-        return;
-      }
-
-      setState(() {
-        _isLoading = true;
-      });
-
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      setState(() {
-        latitude = position.latitude;
-        longitude = position.longitude;
-      });
-
-      if (sendLocation) {
-        await _handleUpdateApi();
-      }
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      print("Latitude: $latitude, Longitude: $longitude");
-    } catch (e) {
-      print('Error: $e');
+  handleLocation() async {
+    var status = await Permission.location.request();
+    if (status.isGranted) {
+      print('Location permission accepted');
+    } else {
+      print('Location permission denied');
     }
+    setState(() {
+      _isLoading = true;
+    });
+
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    setState(() {
+      latitude = position.latitude;
+      longitude = position.longitude;
+    });
+
+    if (sendLocation) {
+      await _handleUpdateApi();
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    print("Latitude: $latitude, Longitude: $longitude");
   }
 
-  Future<void> _handleUpdateApi() async {
+  _handleUpdateApi() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    setState(() {
+      latitude = position.latitude;
+      longitude = position.longitude;
+    });
+
+    final time = DateTime.now().millisecondsSinceEpoch;
+
+    final updateApiUri =
+        'https://7tonexpress.com/locationtesting/update?uuid=${widget.uuid}&duid=${widget.duid}&time=$time&lat=$latitude&lon=$longitude';
+    Map<String, dynamic> data = {};
+
+    print(updateApiUri);
+
     try {
-      setState(() {
-        _isLoading = true;
-      });
-
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      setState(() {
-        latitude = position.latitude;
-        longitude = position.longitude;
-      });
-
-      final time = DateTime.now().millisecondsSinceEpoch;
-
-      final updateApiUri =
-          'https://7tonexpress.com/locationtesting/update?uuid=${widget.uuid}&duid=${widget.duid}&time=$time&lat=$latitude&lon=$longitude';
-      Map<String, dynamic> data = {};
-
-      print(updateApiUri);
-
       final response = await http.post(
         Uri.parse(updateApiUri),
         headers: {
@@ -197,53 +190,16 @@ class _TrackerPageState extends State<TrackerPage> with WidgetsBindingObserver {
     // Start the periodic location update timer
     startLoop();
 
-    // Register a callback to execute when the app is in the background or terminated
-    WidgetsBinding.instance?.addObserver(this);
-
-    // Set up MethodChannel for running background tasks
-    const MethodChannel backgroundChannel =
-        MethodChannel('com.example/background_location');
-    backgroundChannel.setMethodCallHandler((call) async {
-      if (call.method == 'onBackgroundLocation') {
-        final Map<dynamic, dynamic> args = call.arguments;
-        final double latitude = args['latitude'];
-        final double longitude = args['longitude'];
-        final int time = args['time'];
-        // You can handle the background location data here
-        // For example, send it to your server
-        await _handleBackgroundLocation(latitude, longitude, time);
-      }
-    });
+    // Ensure that the user is logged in and set isLoggedIn to true in shared preferences
+    setLoggedInFlag();
   }
 
-  Future<void> _handleBackgroundLocation(
-      double latitude, double longitude, int time) async {
-    final updateApiUri =
-        'https://7tonexpress.com/locationtesting/update?uuid=${widget.uuid}&duid=${widget.duid}&time=$time&lat=$latitude&lon=$longitude';
-    Map<String, dynamic> data = {};
-
-    try {
-      final response = await http.post(
-        Uri.parse(updateApiUri),
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: data,
-      );
-
-      if (response.statusCode == 200) {
-        // Location sent successfully
-      } else {
-        print('Request failed with status: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error: $e');
-    }
-  }
-
-  // Add a function to handle logout
+  // Function to handle logout
   void handleLogout() async {
     // Clear the last login timestamp
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.clear();
+    });
     clearLastLoginTimestamp();
 
     // Clear the duty status
@@ -290,6 +246,12 @@ class _TrackerPageState extends State<TrackerPage> with WidgetsBindingObserver {
 
     // Update duty status in shared preferences
     await updateDutyStatus(isOnDuty);
+  }
+
+  // Function to set the isLoggedIn flag to true in shared preferences
+  void setLoggedInFlag() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', true);
   }
 
   @override
@@ -353,34 +315,5 @@ class _TrackerPageState extends State<TrackerPage> with WidgetsBindingObserver {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    // Cancel the timer when the widget is disposed
-    timer.cancel();
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    // Function to start periodic location updates
-
-    void startLoop() {
-      timer = Timer.periodic(Duration(seconds: 15), (timer) {
-        if (sendLocation) {
-          handleLocation();
-        }
-      });
-    }
-
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached) {
-      // App is in the background or terminated
-
-      // Retrieve latitude and longitude
-      handleLocation();
-    }
   }
 }

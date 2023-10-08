@@ -1,7 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:location_tracker/pages/location_page.dart';
-import 'package:location_tracker/pages/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:location_tracker/pages/login.dart';
+import 'package:location_tracker/pages/location_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -20,8 +21,8 @@ class _SplashScreenState extends State<SplashScreen> {
   void navigateToNextScreen() async {
     // Check if the user is already logged in
     final prefs = await SharedPreferences.getInstance();
-    final isLoggedIn = prefs.containsKey('uuid');
-    final isFirstTime = prefs.getBool('first_time') ?? true;
+    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+     print('IsLoggedIn: $isLoggedIn'); // Print the login status
 
     Future.delayed(Duration(seconds: 3), () {
       if (isLoggedIn) {
@@ -29,8 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) =>
-                isFirstTime ? LoginPage() : TrackerPage(uuid: 'uuid', duid: 'duid', userNameT: 'nameText'),
+            builder: (BuildContext context) => TrackerPage(uuid: 'uuid', duid: 'duid', userNameT: 'nameText'),
           ),
         );
       } else {
@@ -83,3 +83,4 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
+
