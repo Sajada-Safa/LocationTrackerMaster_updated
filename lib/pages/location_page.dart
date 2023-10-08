@@ -30,6 +30,24 @@ class _TrackerPageState extends State<TrackerPage> {
   bool isOnDuty = false;
   bool sendLocation = false;
   int currentTime = 0; // Initialize with 0
+  String unsendLocation = '';
+  late SharedPreferences prefs;
+
+  final LocationSettings locationSettings = AndroidSettings(
+    accuracy: LocationAccuracy.high,
+    distanceFilter: 0,
+    forceLocationManager: true,
+    intervalDuration: const Duration(seconds: 10),
+    //(Optional) Set foreground notification config to keep the app alive
+    //when going to the background
+    foregroundNotificationConfig: const ForegroundNotificationConfig(
+    notificationText:
+    "Example app will continue to receive your location even when you aren't using it",
+  notificationTitle: "Running in Background",
+  enableWakeLock: true,
+  )
+  );
+
 
   static const String dutyStatusKey = 'duty_status';
   static const String lastLoginTimestampKey = 'last_login_timestamp';
@@ -45,9 +63,13 @@ class _TrackerPageState extends State<TrackerPage> {
       _isLoading = true;
     });
 
+
     Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
+      desiredAccuracy: LocationAccuracy.medium,
     );
+
+
+    print(position);
 
     setState(() {
       latitude = position.latitude;
@@ -66,9 +88,18 @@ class _TrackerPageState extends State<TrackerPage> {
   }
 
   _handleUpdateApi() async {
+     var tempLocationPrefs = await prefs.getString('UNSEND_LOCATION') ?? '';
     setState(() {
       _isLoading = true;
     });
+
+    if(tempLocationPrefs != ''){
+      setState(() {
+        unsendLocation = tempLocationPrefs;
+      });
+    }
+
+    print('@@@@@@@@@@@@@@@@@ $tempLocationPrefs');
 
     Position position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
@@ -95,6 +126,7 @@ class _TrackerPageState extends State<TrackerPage> {
         },
         body: data,
       );
+      print(response.persistentConnection);
 
       if (response.statusCode == 200) {
         // Location sent successfully
@@ -102,7 +134,19 @@ class _TrackerPageState extends State<TrackerPage> {
         print('Request failed with status: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error: $e');
+      var recentLocation = 'time=$time&lat=$latitude&lon=$longitude';
+        if(unsendLocation == ''){
+          setState(() {
+            unsendLocation = recentLocation;
+            print(' nothing found ');
+          });
+        }else{
+          setState(() {
+            unsendLocation = '$unsendLocation|$recentLocation';
+            print(' found ');
+          });
+        }
+        await prefs.setString('UNSEND_LOCATION', unsendLocation);
     } finally {
       setState(() {
         _isLoading = false;
@@ -111,7 +155,6 @@ class _TrackerPageState extends State<TrackerPage> {
   }
 
   Future<void> updateDutyStatus(bool status) async {
-    final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(dutyStatusKey, status);
   }
 
@@ -143,8 +186,17 @@ class _TrackerPageState extends State<TrackerPage> {
   }
 
   @override
-  void initState() {
+  void initState(){
     super.initState();
+
+    _setupInitState();
+
+    StreamSubscription<Position> positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+            (Position? position) {
+              print('##################################');
+          print(position == null ? 'Unknown' : '${position.latitude.toString()}, ${position.longitude.toString()}');
+        }
+    );
 
     // Check if the user has been logged in for more than 15 days
     getLastLoginTimestamp().then((lastLoginTimestamp) {
@@ -254,6 +306,28 @@ class _TrackerPageState extends State<TrackerPage> {
     await prefs.setBool('isLoggedIn', true);
   }
 
+  /// Handle location sync
+  void _handleLocationSync() async{
+    var unsendLocationArray = unsendLocation.split('|');
+
+    print(unsendLocationArray.length);
+    for(var loc in unsendLocationArray){
+      print(loc);
+      //Implement location Sync network call
+
+    }
+
+    //on success
+    setState(() {
+      unsendLocation = '';
+    });
+    await prefs.setString('UNSEND_LOCATION', unsendLocation);
+  }
+
+  void _setupInitState() async{
+    prefs = await SharedPreferences.getInstance();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -310,6 +384,21 @@ class _TrackerPageState extends State<TrackerPage> {
                 ),
                 child: Text(isOnDuty ? 'OFF DUTY' : 'ON DUTY'),
               ),
+              SizedBox(
+                height: 18,
+              ),
+              Visibility(
+                visible: unsendLocation != '',
+                child: ElevatedButton(
+                  onPressed: (){
+                    _handleLocationSync();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isOnDuty ? Colors.deepOrange : Colors.blue,
+                  ),
+                  child: Text('Sync location'),
+                ),
+              )
             ],
           ),
         ),
