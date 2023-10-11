@@ -178,7 +178,7 @@ class _TrackerPageState extends State<TrackerPage> {
   List<String> timeData = [];
 
   void startLoop() {
-    timer = Timer.periodic(Duration(seconds: 15), (timer) {
+    timer = Timer.periodic(Duration(seconds: 5), (timer) {
       if (sendLocation) {
         handleLocation();
       }
@@ -366,9 +366,9 @@ class _TrackerPageState extends State<TrackerPage> {
                             SizedBox(
                               height: 50,
                             ),
-                            Text("Latitude: $latitude"),
-                            Text("Longitude: $longitude"),
-                            Text("Time: ${DateTime.now().millisecondsSinceEpoch}"),
+                            // Text("Latitude: $latitude"),
+                            // Text("Longitude: $longitude"),
+                            // Text("Time: ${DateTime.now().millisecondsSinceEpoch}"),
                           ],
                         )
                       : const Text(
