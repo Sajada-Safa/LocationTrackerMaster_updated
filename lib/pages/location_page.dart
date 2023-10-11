@@ -188,7 +188,6 @@ class _TrackerPageState extends State<TrackerPage> {
   @override
   void initState(){
     super.initState();
-
     _setupInitState();
 
     StreamSubscription<Position> positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
@@ -276,6 +275,8 @@ class _TrackerPageState extends State<TrackerPage> {
     await prefs.setBool('isLoggedIn', false);
   }
 
+  
+
   // Function to clear the last login timestamp
   void clearLastLoginTimestamp() async {
     final prefs = await SharedPreferences.getInstance();
@@ -324,9 +325,17 @@ class _TrackerPageState extends State<TrackerPage> {
     await prefs.setString('UNSEND_LOCATION', unsendLocation);
   }
 
-  void _setupInitState() async{
+    void _setupInitState() async {
     prefs = await SharedPreferences.getInstance();
+    var dutyStatusPrefs = await prefs.getBool(dutyStatusKey) ?? false;
+
+    setState(() {
+      isOnDuty = dutyStatusPrefs;
+      sendLocation = dutyStatusPrefs;
+      
+    });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -357,9 +366,9 @@ class _TrackerPageState extends State<TrackerPage> {
                             SizedBox(
                               height: 50,
                             ),
-                            // Text("Latitude: $latitude"),
-                            // Text("Longitude: $longitude"),
-                            // Text("Time: ${DateTime.now().millisecondsSinceEpoch}"),
+                            Text("Latitude: $latitude"),
+                            Text("Longitude: $longitude"),
+                            Text("Time: ${DateTime.now().millisecondsSinceEpoch}"),
                           ],
                         )
                       : const Text(

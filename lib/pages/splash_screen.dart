@@ -24,13 +24,20 @@ class _SplashScreenState extends State<SplashScreen> {
     final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
      print('IsLoggedIn: $isLoggedIn'); // Print the login status
 
+    var uuid = await prefs.getString('uuid') ?? 'NA';
+    print(uuid);
+    var duid = prefs.getString('deviceIdToShow') ?? 'NA';
+    print(duid);
+    var nameText = prefs.getString('name') ?? 'NA';
+    print(nameText);
+
     Future.delayed(Duration(seconds: 3), () {
       if (isLoggedIn) {
         // If the user is logged in, navigate to the LocationPage
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (BuildContext context) => TrackerPage(uuid: 'uuid', duid: 'duid', userNameT: 'nameText'),
+            builder: (BuildContext context) => TrackerPage(uuid: uuid, duid: duid, userNameT: nameText),
           ),
         );
       } else {
