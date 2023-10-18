@@ -26,7 +26,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     var uuid = await prefs.getString('uuid') ?? 'NA';
     print(uuid);
-    var duid = prefs.getString('deviceIdToShow') ?? 'NA';
+    var duid = prefs.getString('duid') ?? 'NA';
     print(duid);
     var nameText = prefs.getString('name') ?? 'NA';
     print(nameText);

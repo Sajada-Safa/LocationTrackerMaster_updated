@@ -178,7 +178,7 @@ class _TrackerPageState extends State<TrackerPage> {
   List<String> timeData = [];
 
   void startLoop() {
-    timer = Timer.periodic(Duration(seconds: 5), (timer) {
+    timer = Timer.periodic(Duration(seconds: 15), (timer) {
       if (sendLocation) {
         handleLocation();
       }
@@ -226,17 +226,22 @@ class _TrackerPageState extends State<TrackerPage> {
     // Set the last login timestamp
     setLastLoginTimestamp();
 
-    // Check for connectivity changes
-    ConnectivityResult _connectivityResult = ConnectivityResult.none;
+ConnectivityResult _connectivityResult = ConnectivityResult.none;
 
-    Connectivity().onConnectivityChanged.listen((event) {
-      setState(() {
-        _connectivityResult = event;
-      });
-      if (event == ConnectivityResult.none) {
-        print('no internet');
-      }
-    });
+Connectivity().onConnectivityChanged.listen((event) {
+  setState(() {
+    _connectivityResult = event;
+  });
+  if (event == ConnectivityResult.none) {
+    print('No internet');
+  } else if (event == ConnectivityResult.wifi || event == ConnectivityResult.mobile) {
+    print('Internet connected');
+    if (unsendLocation.isNotEmpty) {
+      // Call the sync function when there's an internet connection
+      _handleLocationSync();
+    }
+  }
+});
 
     // Start the periodic location update timer
     startLoop();
@@ -307,22 +312,49 @@ class _TrackerPageState extends State<TrackerPage> {
     await prefs.setBool('isLoggedIn', true);
   }
 
-  /// Handle location sync
-  void _handleLocationSync() async{
+   void _handleLocationSync() async {
     var unsendLocationArray = unsendLocation.split('|');
+    bool locationUpdated = true;
 
-    print(unsendLocationArray.length);
-    for(var loc in unsendLocationArray){
-      print(loc);
-      //Implement location Sync network call
+    for (var loc in unsendLocationArray) {
+      final updateApiUri =
+          'https://7tonexpress.com/locationtesting/update?uuid=${widget.uuid}&duid=${widget.duid}&$loc';
+      Map<String, dynamic> data = {};
 
+      try {
+        final response = await http.post(
+          Uri.parse(updateApiUri),
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: data,
+        );
+
+        if (response.statusCode == 200) {
+          // Location sent successfully
+          print(updateApiUri);
+        } else {
+          print('Request failed with status: ${response.statusCode}');
+        }
+      } catch (e) {
+        print(e);
+        locationUpdated = false;
+      }
     }
 
-    //on success
-    setState(() {
-      unsendLocation = '';
-    });
-    await prefs.setString('UNSEND_LOCATION', unsendLocation);
+    // On success
+    if (locationUpdated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Location synced successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      setState(() {
+        unsendLocation = '';
+      });
+      await prefs.setString('UNSEND_LOCATION', unsendLocation);
+    }
   }
 
     void _setupInitState() async {
@@ -396,18 +428,6 @@ class _TrackerPageState extends State<TrackerPage> {
               SizedBox(
                 height: 18,
               ),
-              Visibility(
-                visible: unsendLocation != '',
-                child: ElevatedButton(
-                  onPressed: (){
-                    _handleLocationSync();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isOnDuty ? Colors.deepOrange : Colors.blue,
-                  ),
-                  child: Text('Sync location'),
-                ),
-              )
             ],
           ),
         ),
