@@ -42,7 +42,7 @@ class _TrackerPageState extends State<TrackerPage> {
     //when going to the background
     foregroundNotificationConfig: const ForegroundNotificationConfig(
     notificationText:
-    "Example app will continue to receive your location even when you aren't using it",
+    "Veilo app will continue to receive your location even when you aren't using it",
   notificationTitle: "Running in Background",
   enableWakeLock: true,
   )
@@ -113,7 +113,7 @@ class _TrackerPageState extends State<TrackerPage> {
     final time = DateTime.now().millisecondsSinceEpoch;
 
     final updateApiUri =
-        'https://7tonexpress.com/locationtesting/update?uuid=${widget.uuid}&duid=${widget.duid}&time=$time&lat=$latitude&lon=$longitude';
+        'https://minmaxopt.com/update?uuid=${widget.uuid}&duid=${widget.duid}&time=$time&lat=$latitude&lon=$longitude';
     Map<String, dynamic> data = {};
 
     print(updateApiUri);
@@ -318,7 +318,7 @@ Connectivity().onConnectivityChanged.listen((event) {
 
     for (var loc in unsendLocationArray) {
       final updateApiUri =
-          'https://7tonexpress.com/locationtesting/update?uuid=${widget.uuid}&duid=${widget.duid}&$loc';
+          'https://minmaxopt.com/update?uuid=${widget.uuid}&duid=${widget.duid}&$loc';
       Map<String, dynamic> data = {};
 
       try {
@@ -373,7 +373,7 @@ Connectivity().onConnectivityChanged.listen((event) {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Location Tracker'),
+        title: Text('Veilo'),
         actions: [
           IconButton(
             onPressed: () {

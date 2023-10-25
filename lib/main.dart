@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Location Tracker',
+      title: 'Veilo',
       theme: ThemeData(
         primaryColor: Color.fromARGB(255, 101, 71, 145),
         primarySwatch: Colors.deepPurple,

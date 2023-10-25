@@ -104,7 +104,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> handleAPi() async {
     String apiUrl =
-        'https://7tonexpress.com/locationtesting/check?uuid=$userIdToShow&name=$nameText';
+        'https://minmaxopt.com/check?uuid=$userIdToShow&name=$nameText';
 
     Map<String, dynamic> data = {};
 
@@ -184,7 +184,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Login Page'),
+        title: Text('Veilo'),
       ),
       body: Center(
         child: Container(

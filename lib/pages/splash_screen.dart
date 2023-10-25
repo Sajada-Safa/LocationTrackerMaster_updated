@@ -77,7 +77,7 @@ class _SplashScreenState extends State<SplashScreen> {
               height: 20,
             ),
             Text(
-              "LOCATION TRACKER",
+              "VEILO",
               style: TextStyle(
                 fontStyle: FontStyle.italic,
                 fontSize: 32,
