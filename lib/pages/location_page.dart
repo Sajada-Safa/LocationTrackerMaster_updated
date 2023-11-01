@@ -34,20 +34,18 @@ class _TrackerPageState extends State<TrackerPage> {
   late SharedPreferences prefs;
 
   final LocationSettings locationSettings = AndroidSettings(
-    accuracy: LocationAccuracy.high,
-    distanceFilter: 0,
-    forceLocationManager: true,
-    intervalDuration: const Duration(seconds: 10),
-    //(Optional) Set foreground notification config to keep the app alive
-    //when going to the background
-    foregroundNotificationConfig: const ForegroundNotificationConfig(
-    notificationText:
-    "Veilo app will continue to receive your location even when you aren't using it",
-  notificationTitle: "Running in Background",
-  enableWakeLock: true,
-  )
-  );
-
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 0,
+      forceLocationManager: true,
+      intervalDuration: const Duration(seconds: 10),
+      //(Optional) Set foreground notification config to keep the app alive
+      //when going to the background
+      foregroundNotificationConfig: const ForegroundNotificationConfig(
+        notificationText:
+            "Veilo app will continue to receive your location even when you aren't using it",
+        notificationTitle: "Running in Background",
+        enableWakeLock: true,
+      ));
 
   static const String dutyStatusKey = 'duty_status';
   static const String lastLoginTimestampKey = 'last_login_timestamp';
@@ -63,11 +61,9 @@ class _TrackerPageState extends State<TrackerPage> {
       _isLoading = true;
     });
 
-
     Position position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.medium,
     );
-
 
     print(position);
 
@@ -88,12 +84,12 @@ class _TrackerPageState extends State<TrackerPage> {
   }
 
   _handleUpdateApi() async {
-     var tempLocationPrefs = await prefs.getString('UNSEND_LOCATION') ?? '';
+    var tempLocationPrefs = await prefs.getString('UNSEND_LOCATION') ?? '';
     setState(() {
       _isLoading = true;
     });
 
-    if(tempLocationPrefs != ''){
+    if (tempLocationPrefs != '') {
       setState(() {
         unsendLocation = tempLocationPrefs;
       });
@@ -135,18 +131,18 @@ class _TrackerPageState extends State<TrackerPage> {
       }
     } catch (e) {
       var recentLocation = 'time=$time&lat=$latitude&lon=$longitude';
-        if(unsendLocation == ''){
-          setState(() {
-            unsendLocation = recentLocation;
-            print(' nothing found ');
-          });
-        }else{
-          setState(() {
-            unsendLocation = '$unsendLocation|$recentLocation';
-            print(' found ');
-          });
-        }
-        await prefs.setString('UNSEND_LOCATION', unsendLocation);
+      if (unsendLocation == '') {
+        setState(() {
+          unsendLocation = recentLocation;
+          print(' nothing found ');
+        });
+      } else {
+        setState(() {
+          unsendLocation = '$unsendLocation|$recentLocation';
+          print(' found ');
+        });
+      }
+      await prefs.setString('UNSEND_LOCATION', unsendLocation);
     } finally {
       setState(() {
         _isLoading = false;
@@ -186,16 +182,18 @@ class _TrackerPageState extends State<TrackerPage> {
   }
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     _setupInitState();
 
-    StreamSubscription<Position> positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
-            (Position? position) {
-              print('##################################');
-          print(position == null ? 'Unknown' : '${position.latitude.toString()}, ${position.longitude.toString()}');
-        }
-    );
+    StreamSubscription<Position> positionStream =
+        Geolocator.getPositionStream(locationSettings: locationSettings)
+            .listen((Position? position) {
+      print('##################################');
+      print(position == null
+          ? 'Unknown'
+          : '${position.latitude.toString()}, ${position.longitude.toString()}');
+    });
 
     // Check if the user has been logged in for more than 15 days
     getLastLoginTimestamp().then((lastLoginTimestamp) {
@@ -226,22 +224,23 @@ class _TrackerPageState extends State<TrackerPage> {
     // Set the last login timestamp
     setLastLoginTimestamp();
 
-ConnectivityResult _connectivityResult = ConnectivityResult.none;
+    ConnectivityResult _connectivityResult = ConnectivityResult.none;
 
-Connectivity().onConnectivityChanged.listen((event) {
-  setState(() {
-    _connectivityResult = event;
-  });
-  if (event == ConnectivityResult.none) {
-    print('No internet');
-  } else if (event == ConnectivityResult.wifi || event == ConnectivityResult.mobile) {
-    print('Internet connected');
-    if (unsendLocation.isNotEmpty) {
-      // Call the sync function when there's an internet connection
-      _handleLocationSync();
-    }
-  }
-});
+    Connectivity().onConnectivityChanged.listen((event) {
+      setState(() {
+        _connectivityResult = event;
+      });
+      if (event == ConnectivityResult.none) {
+        print('No internet');
+      } else if (event == ConnectivityResult.wifi ||
+          event == ConnectivityResult.mobile) {
+        print('Internet connected');
+        if (unsendLocation.isNotEmpty) {
+          // Call the sync function when there's an internet connection
+          _handleLocationSync();
+        }
+      }
+    });
 
     // Start the periodic location update timer
     startLoop();
@@ -280,8 +279,6 @@ Connectivity().onConnectivityChanged.listen((event) {
     await prefs.setBool('isLoggedIn', false);
   }
 
-  
-
   // Function to clear the last login timestamp
   void clearLastLoginTimestamp() async {
     final prefs = await SharedPreferences.getInstance();
@@ -312,7 +309,7 @@ Connectivity().onConnectivityChanged.listen((event) {
     await prefs.setBool('isLoggedIn', true);
   }
 
-   void _handleLocationSync() async {
+  void _handleLocationSync() async {
     var unsendLocationArray = unsendLocation.split('|');
     bool locationUpdated = true;
 
@@ -357,65 +354,41 @@ Connectivity().onConnectivityChanged.listen((event) {
     }
   }
 
-    void _setupInitState() async {
+  void _setupInitState() async {
     prefs = await SharedPreferences.getInstance();
     var dutyStatusPrefs = await prefs.getBool(dutyStatusKey) ?? false;
 
     setState(() {
       isOnDuty = dutyStatusPrefs;
       sendLocation = dutyStatusPrefs;
-      
     });
   }
 
-
-  @override
+    @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Veilo'),
-        actions: [
-          IconButton(
-            onPressed: () {
-              handleLogout();
-            },
-            icon: Icon(Icons.logout),
-          ),
-        ],
-      ),
-      body: Center(
-        child: Container(
-          width: 300,
-          height: double.infinity,
+    return WillPopScope(
+      onWillPop: showExitDialog, // Override the back button behavior
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Veilo'),
+          actions: [
+            IconButton(
+              onPressed: () {
+                handleLogout();
+              },
+              icon: Icon(Icons.logout),
+            ),
+          ],
+        ),
+        body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _isLoading
-                  ? const CircularProgressIndicator()
-                  : (longitude != null && latitude != null && sendLocation)
-                      ? Column(
-                          children: [
-                            SizedBox(
-                              height: 50,
-                            ),
-                            // Text("Latitude: $latitude"),
-                            // Text("Longitude: $longitude"),
-                            // Text("Time: ${DateTime.now().millisecondsSinceEpoch}"),
-                          ],
-                        )
-                      : const Text(
-                          ' ',
-                        ),
-              SizedBox(
-                height: 20,
-              ),
               Text(
                 statusText,
                 style: TextStyle(fontSize: 15, color: Colors.blueGrey),
               ),
-              SizedBox(
-                height: 18,
-              ),
+              SizedBox(height: 18),
               ElevatedButton(
                 onPressed: () {
                   toggleDuty(); // Toggle duty and location tracking
@@ -425,13 +398,39 @@ Connectivity().onConnectivityChanged.listen((event) {
                 ),
                 child: Text(isOnDuty ? 'OFF DUTY' : 'ON DUTY'),
               ),
-              SizedBox(
-                height: 18,
-              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<bool> showExitDialog() async {
+    // Show an exit confirmation dialog when the back button is pressed
+    return await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Exit Confirmation'),
+          content: Text('Are you sure you want to exit the app?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // Pop the dialog and allow the app to exit
+                Navigator.of(context).pop(true);
+              },
+              child: Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Pop the dialog and prevent the app from exiting
+                Navigator.of(context).pop(false);
+              },
+              child: Text('No'),
+            ),
+          ],
+        );
+      },
+    ) ?? false;
   }
 }
