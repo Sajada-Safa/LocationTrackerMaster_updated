@@ -68,20 +68,17 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.location_pin,
-              size: 80,
-              color: Colors.white,
-            ),
+            Image(image: AssetImage("assets/icon.png"), width: 100,),
             SizedBox(
               height: 20,
             ),
             Text(
               "VEILO",
               style: TextStyle(
-                fontStyle: FontStyle.italic,
+                fontStyle: FontStyle.normal,
+                fontWeight: FontWeight.bold,
                 fontSize: 32,
-                color: Colors.white,
+                color: Colors.white70,
               ),
             ),
           ],
