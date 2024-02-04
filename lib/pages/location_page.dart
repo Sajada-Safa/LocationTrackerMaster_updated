@@ -109,7 +109,7 @@ class _TrackerPageState extends State<TrackerPage> {
     final time = DateTime.now().millisecondsSinceEpoch;
 
     final updateApiUri =
-        'https://minmaxopt.com/update?uuid=${widget.uuid}&duid=${widget.duid}&time=$time&lat=$latitude&lon=$longitude';
+        ' https://veilolab.com/map/update?uuid=${widget.uuid}&duid=${widget.duid}&time=$time&lat=$latitude&lon=$longitude';
     Map<String, dynamic> data = {};
 
     print(updateApiUri);
@@ -315,7 +315,7 @@ class _TrackerPageState extends State<TrackerPage> {
 
     for (var loc in unsendLocationArray) {
       final updateApiUri =
-          'https://minmaxopt.com/update?uuid=${widget.uuid}&duid=${widget.duid}&$loc';
+          ' https://veilolab.com/map/update?uuid=${widget.uuid}&duid=${widget.duid}&$loc';
       Map<String, dynamic> data = {};
 
       try {
@@ -404,7 +404,7 @@ class _TrackerPageState extends State<TrackerPage> {
       ),
     );
   }
-
+  
   Future<bool> showExitDialog() async {
     // Show an exit confirmation dialog when the back button is pressed
     return await showDialog(
